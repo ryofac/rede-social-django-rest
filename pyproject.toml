@@ -1,0 +1,105 @@
+# ==== pytest ====
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--ds=config.settings.test --reuse-db --import-mode=importlib"
+python_files = ["tests.py", "test_*.py"]
+
+# ==== Coverage ====
+[tool.coverage.run]
+include = ["recipies/**"]
+omit = ["*/migrations/*", "*/tests/*"]
+plugins = ["django_coverage_plugin"]
+
+# ==== mypy ====
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+
+[[tool.mypy.overrides]]
+# Django migrations should not produce any errors:
+module = "*.migrations.*"
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+# ==== djLint ====
+[tool.djlint]
+blank_line_after_tag = "load,extends"
+close_void_tags = true
+format_css = true
+format_js = true
+# TODO: remove T002 when fixed https://github.com/Riverside-Healthcare/djLint/issues/687
+ignore = "H006,H030,H031,T002"
+include = "H017,H035"
+indent = 2
+max_line_length = 119
+profile = "django"
+
+[tool.djlint.css]
+indent_size = 2
+
+[tool.djlint.js]
+indent_size = 2
+
+[tool.black]
+target-version = ['py312']
+line-length = 119
+
+[tool.isort]
+profile = "black"
+line_length = 119
+known_first_party = ["recipies", "config"]
+skip = ["/venv"]
+skip_glob = ["**/migrations/*.py"]
+
+# ==== PyLint ====
+[tool.pylint.MASTER]
+load-plugins = ["pylint_django", "pylint_celery"]
+django-settings-module = "config.settings.local"
+
+[tool.pylint.FORMAT]
+max-line-length = 119
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = ["missing-docstring", "invalid-name"]
+
+[tool.pylint.DESIGN]
+max-parents = 13
+
+[tool.pylint.TYPECHECK]
+generated-members = [
+  "REQUEST",
+  "acl_users",
+  "aq_parent",
+  "[a-zA-Z]+_set{1,2}",
+  "save",
+  "delete",
+]
+
+[tool.flake8]
+# Check that this is aligned with your other tools like Black
+extend-select = ["B950"]
+max-line-length = 119
+exclude = [
+  # No need to traverse our git directory
+  ".git",
+  # There's no value in checking cache directories
+  "__pycache__",
+]
+# Use extend-ignore to add to already ignored checks which are anti-patterns like W503.
+extend-ignore = [
+  # PEP 8 recommends to treat : in slices as a binary operator with the lowest priority, and to leave an equal
+  # amount of space on either side, except if a parameter is omitted (e.g. ham[1 + 1 :]).
+  # This behaviour may raise E203 whitespace before ':' warnings in style guide enforcement tools like Flake8.
+  # Since E203 is not PEP 8 compliant, we tell Flake8 to ignore this warning.
+  # https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html#slices
+  "E203",
+  "E501",
+  "E701",
+]
