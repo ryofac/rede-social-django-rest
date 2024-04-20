@@ -10,6 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+# TODO: 
+
+# TODO: Implementar o CORS, com o django-cors-headers: ver a doc
+CORS_ALLOWED_ORIGINS = [
+    "127.0.0.1:8000"
+]
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -32,7 +39,7 @@ ALLOWED_HOSTS = []
 
 MY_APPS = ["social_network"]
 
-THIRDY_PARTY_APPS = ["rest_framework", "django_extensions"]
+THIRDY_PARTY_APPS = ["rest_framework", "django_extensions", "corsheaders"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -46,6 +53,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+
+    # Adicionando política de CORS para a aplicação:
+    "corsheaders.middleware.CorsMiddleware",
+
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
