@@ -14,12 +14,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
-from email.mime import base
 from django.urls import include, path
 from social_network import views
 from rest_framework import routers
-from rest_framework.urlpatterns import format_suffix_patterns
 
 router = routers.DefaultRouter()
 router.register(r"users", viewset=views.UserViewSet, basename="user")

@@ -6,6 +6,8 @@ class User(models.Model):
     username = models.CharField(max_length=20, verbose_name="Nome de usuário")
     password = models.CharField(max_length=20, verbose_name="Senha")
     followers = models.ManyToManyField('self', symmetrical=False, related_name="Followed", blank=True)
+    created_at = models.DateTimeField(auto_created=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 class Post(models.Model):
     title = models.TextField(blank=False)
@@ -15,7 +17,7 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Comment(models.Model):
-    content = models.CharField(verbose_name="Conetúdo")
+    content = models.CharField(max_length=255, verbose_name="Conteúdo")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_created=True)
