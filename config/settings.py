@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 # TODO: 
 
 # TODO: Implementar o CORS, com o django-cors-headers: ver a doc
-CORS_ALLOWRD_ORIGINS = [
+CORS_ALLOWED_ORIGINS = [
     "127.0.0.1:8000"
 ]
 
@@ -53,7 +53,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    
+
     # Adicionando política de CORS para a aplicação:
     "corsheaders.middleware.CorsMiddleware",
 
