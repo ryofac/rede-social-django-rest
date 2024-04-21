@@ -6,7 +6,7 @@ from django.db import models
 class User(AbstractUser):
     username = models.CharField(max_length=20, verbose_name="Nome de usuário", unique=True)
     name = models.CharField(max_length=45, verbose_name="Nome")
-    password = models.CharField(max_length=20, verbose_name="Senha")
+    password = models.CharField(verbose_name="Senha")
     bio = models.CharField(max_length=255, verbose_name="Biografia")
     followers = models.ManyToManyField("self", symmetrical=False, related_name="Followed", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
