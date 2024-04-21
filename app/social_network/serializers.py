@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from social_network import models
 
 # TODO: Pesquisar sobre ordenamento das classes

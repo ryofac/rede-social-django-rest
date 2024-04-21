@@ -1,3 +1,4 @@
+# flake8: noqa
 """
 Django settings for config project.
 
@@ -10,11 +11,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-# TODO:
-
 # TODO: Implementar o CORS, com o django-cors-headers: ver a doc
 CORS_ALLOWED_ORIGINS = ["http://127.0.0.1:8000"]
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-jkvv$jta*nnxa^g%nm2v*(5atny7ghzoqxx3w2g#gge#!r@aj8"
+SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE-ME")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -33,11 +33,19 @@ DEBUG = True
 ALLOWED_HOSTS = ["0.0.0.0"]
 
 
+AUTH_USER_MODEL = "social_network.User"
+
+
 # Application definition
 
-MY_APPS = ["social_network"]
+MY_APPS = ["social_network", "core"]
 
-THIRDY_PARTY_APPS = ["rest_framework", "django_extensions", "corsheaders"]
+THIRDY_PARTY_APPS = [
+    "rest_framework",
+    "rest_framework.authtoken",
+    "django_extensions",
+    "corsheaders",
+]
 
 INSTALLED_APPS = (
     [
@@ -90,8 +98,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "CHANGE-ME"),
+        "USER": os.getenv("POSTGRES_USER", "CHANGE-ME"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "CHANGE-ME"),
+        "HOST": "postgres",
+        "PORT": os.getenv("POSTGRES_PORT", "CHANGE-ME"),
     }
 }
 
@@ -132,7 +144,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-STATIC_ROOT = BASE_DIR / STATIC_URL
+STATIC_ROOT = BASE_DIR / "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
