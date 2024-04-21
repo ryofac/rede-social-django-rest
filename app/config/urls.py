@@ -28,5 +28,5 @@ urlpatterns = [
     re_path("signup", views.signup),
     re_path("test_token", views.test_token),
     path("posts/", views.create_list_post),
-    path("users/", views.create_list_user),
+    path("users/", views.list_all_users),
 ]
