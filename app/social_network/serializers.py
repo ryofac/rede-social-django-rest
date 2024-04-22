@@ -1,17 +1,31 @@
 from rest_framework import serializers
 from social_network import models
 
+
 # TODO: Pesquisar sobre ordenamento das classes
-
-
 class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source="get_full_name", read_only=True)
+
     class Meta:
         model = models.User
-        fields = ["id", "username", "password", "followers"]
+        fields = [
+            "id",
+            "username",
+            "password",
+            "followers",
+            "full_name",
+            "first_name",
+            "last_name",
+            "last_login",
+            "is_authenticated",
+        ]
+
         extra_kwargs = {
             "password": {"write_only": True},
+            "first_name": {"write_only": True},
+            "last_name": {"write_only": True},
         }
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "full_name", "last_login"]
 
 
 class CommentSerializer(serializers.ModelSerializer):

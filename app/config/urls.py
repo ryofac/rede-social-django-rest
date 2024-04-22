@@ -25,6 +25,7 @@ urlpatterns = [
     path("", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     re_path("login", views.login),
+    re_path("logout", views.logout),
     re_path("signup", views.signup),
     re_path("test_token", views.test_token),
     path("posts/", views.create_list_post),

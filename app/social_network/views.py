@@ -1,4 +1,6 @@
-from platformdirs import user_runtime_dir
+from django.contrib.auth import authenticate
+from django.contrib.auth import logout as django_logout
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -13,23 +15,36 @@ from social_network.serializers import PostSerializer, UserSerializer
 @api_view(["POST"])
 def login(request):
     data = request.data
+    # Validando a entrada: Username e Password
+    # TODO: Pode ser que seja melhor ter um Serializer aqui
+    if not data.get("username") or not data.get("password"):
+        return Response(data={"detail": "invalid username or password"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
     try:
-        user = User.objects.get(username=data["username"])
-        if not user.check_password(request.data["password"]):
-            return Response({"detail": "The required used does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        # Obtendo um usuário com o método authenticate
+        user = authenticate(request, username=data["username"], password=data["password"])
+
+        # Checando se existe o usuário e a senha usando o check_password (já verifica o hash)
+        if not user or not user.check_password(request.data["password"]):
+            return Response({"detail": "The required user does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         # Obtendo ou criando um token para esse usuário
-        token, created = Token.objects.get_or_create(user=user)
+        token, created = Token.objects.get_or_create(user=user)  # retorna (token, bool)
         serializer = UserSerializer(user)
+
+        # atualizando manualmente o last_login
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
         return Response({"token": token.key, "user": serializer.data})
 
     except User.DoesNotExist:
-        return Response({"detail": "The required used does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "The required user does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(["POST"])
 def signup(request):
     data = request.data
+
     serializer = UserSerializer(data=data)
 
     if serializer.is_valid():
@@ -48,6 +63,19 @@ def signup(request):
 
         return Response({"token": token.key, "user": serializer.data}, status=status.HTTP_201_CREATED)
     return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def logout(request):
+    if not request.user or not request.user.is_authenticated:
+        print(request.user.__dict__)
+        return Response({"detail": "not logged in"}, status=status.HTTP_400_BAD_REQUEST)
+    logged_user = request.user
+    django_logout(request)
+    logged_user.auth_token.delete()
+    return Response({"detail": "sucessfuly logged out"}, status=status.HTTP_200_OK)
 
 
 """
@@ -77,6 +105,7 @@ def create_list_post(request, format=None):
         case "POST":
             serializer = PostSerializer(data=request.data)
             if serializer.is_valid():
+                # user = request.user
                 serializer.save(user=user)
                 print(serializer.data)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -86,6 +115,8 @@ def create_list_post(request, format=None):
 
 
 @api_view(["POST"])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def toggle_like(request, post_id):
     # TODO: Implementar usuário autenticado
     user = request.user
@@ -108,6 +139,8 @@ def toggle_like(request, post_id):
 
 
 @api_view(["POST"])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def toggle_dislike(request, post_id):
     # TODO: Implementar usuário autenticado
     user = request.user
