@@ -13,6 +13,7 @@ from social_network.serializers import PostSerializer, UserSerializer
 
 # Login and Register Views:
 @api_view(["POST"])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
 def login(request):
     data = request.data
     # Validando a entrada: Username e Password
@@ -73,8 +74,8 @@ def logout(request):
         print(request.user.__dict__)
         return Response({"detail": "not logged in"}, status=status.HTTP_400_BAD_REQUEST)
     logged_user = request.user
-    django_logout(request)
     logged_user.auth_token.delete()
+    django_logout(request)
     return Response({"detail": "sucessfuly logged out"}, status=status.HTTP_200_OK)
 
 

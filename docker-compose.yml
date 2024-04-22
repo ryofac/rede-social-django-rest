@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 services:
   django:
@@ -7,6 +7,23 @@ services:
     volumes:
       - ./app:/app
     command: > 
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py makemigrations --no-input && python manage.py migrate && \
+      python manage.py await_for_db && python manage.py runserver 0.0.0.0:8000"
     build:
+      args:
+        - DEV=true
       context: .
+    env_file: ./.env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    volumes:
+      - dev-db:/var/lib/postgresql/data/
+    env_file: ./.env
+
+volumes: 
+  dev-db:
+    
+
