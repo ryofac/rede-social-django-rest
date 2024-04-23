@@ -13,7 +13,7 @@ services:
       args:
         - DEV=true
       context: .
-    env_file: ./.env
+    env_file: ./dotenv-files/.env
     depends_on:
       - postgres
 
@@ -21,7 +21,7 @@ services:
     image: postgres:16-alpine
     volumes:
       - dev-db:/var/lib/postgresql/data/
-    env_file: ./.env
+    env_file: ./dotenv-files/.env
 
 volumes: 
   dev-db:
