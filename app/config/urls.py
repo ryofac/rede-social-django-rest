@@ -25,9 +25,17 @@ urlpatterns = [
     path("", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     re_path("login", views.login),
-    re_path("logout", views.logout),
+    re_path("path(user/<username:str>)", views.logout),
     re_path("signup", views.signup),
     re_path("test_token", views.test_token),
     path("posts/", views.create_list_post),
     path("users/", views.list_all_users),
+    #gets by username and post
+    #se quiserem alterar o nome, a vontade
+    path("users/username:string/followed_by", views.list_followed_by),
+    path("users/username:string/followers", views.list_followers),
+    path("post/<pk:int>/comments",views.list_comments_post),
+    #levando junto o usuário autenticado
+    # path("post/<pk:int>/like",views.like_post),
+    # path("post/<pk:int>/deslike",views.deslike_post),
 ]

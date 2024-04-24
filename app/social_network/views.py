@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from social_network.models import Post, PostInteraction, User
-from social_network.serializers import PostSerializer, UserSerializer
+from social_network.serializers import CommentSerializer, PostSerializer, UserSerializer
 
 
 # Login and Register Views:
@@ -171,4 +171,38 @@ def toggle_dislike(request, post_id):
 def list_all_users(request):
     users = User.objects.all()
     serializer = UserSerializer(users, many=True)
+    return Response(serializer.data)
+
+#alterar os metodos, acho que nao estao funcionando :)
+@api_view(["GET"])
+def list_followed_by(request, username):
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"message": "User not found"}, status=404)
+
+    followed_by = user.followed_by.all()
+    serializer = UserSerializer(followed_by, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def list_followers(request, username):
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"message": "User not found"}, status=404)
+
+    followers = user.followers.all()
+    serializer = UserSerializer(followers, many=True)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def list_comments_post(request, pk):
+    try:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response({"message": "Post not found"}, status=404)
+
+    comments = post.comments.all()
+    serializer = CommentSerializer(comments, many=True)
     return Response(serializer.data)
