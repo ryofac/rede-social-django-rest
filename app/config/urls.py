@@ -32,10 +32,10 @@ urlpatterns = [
     path("users/", views.list_all_users),
     #gets by username and post
     #se quiserem alterar o nome, a vontade
-    path("users/username:string/followed_by", views.list_followed_by),
-    path("users/username:string/followers", views.list_followers),
-    path("post/<pk:int>/comments",views.list_comments_post),
+    path("users/string:username/followed_by", views.list_followed_by),
+    path("users/string:username/followers", views.list_followers),
+    path("post/<int:pk>/comments",views.list_comments_post),
     #levando junto o usuário autenticado
-    # path("post/<pk:int>/like",views.like_post),
-    # path("post/<pk:int>/deslike",views.deslike_post),
+    # path("post/<int:pk>/like",views.like_post),
+    # path("post/<int:pk>/deslike",views.deslike_post),
 ]
