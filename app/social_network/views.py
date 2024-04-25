@@ -8,7 +8,8 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from social_network.models import Post, PostInteraction, User
-from social_network.serializers import CommentSerializer, PostSerializer, UserSerializer
+from social_network.serializers import CommentSerializer, PostSerializer, UserSerializer, PostInteractionSerializer
+
 
 
 # Login and Register Views:
@@ -162,9 +163,7 @@ def toggle_dislike(request, post_id):
         PostInteraction.objects.create(user=user, post=post, interaction_type=PostInteraction.DISLIKE)
         return Response({"message": "Post descurtido com sucesso"})
 
-
 # USER:
-
 
 # TODO: Implementar list_all_friends_from_user passando o id do usuário desejado
 @api_view(["GET"])
@@ -206,3 +205,32 @@ def list_comments_post(request, pk):
     comments = post.comments.all()
     serializer = CommentSerializer(comments, many=True)
     return Response(serializer.data)
+
+@api_view(["POST"])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def like_post(request, pk):
+    try:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response({"message": "Post not found"}, status=404)
+
+    user = request.user
+    post_interaction = PostInteraction.objects.create(user=user, post=post, interaction_type=PostInteraction.LIKE)
+    serializer = PostInteractionSerializer(post_interaction)
+    return Response(serializer.data, status=201)
+
+
+@api_view(["POST"])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def deslike_post(request, pk):
+    try:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response({"message": "Post not found"}, status=404)
+
+    user = request.user
+    post_interaction = PostInteraction.objects.create(user=user, post=post, interaction_type=PostInteraction.DISLIKE)
+    serializer = PostInteractionSerializer(post_interaction)
+    return Response(serializer.data, status=201)

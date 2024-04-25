@@ -45,3 +45,9 @@ class PostSerializer(serializers.ModelSerializer):
         model = models.Post
         fields = ["id", "title", "content", "created_at", "updated_at", "comments", "user"]
         read_only_fields = ["id", "created_at"]
+
+class PostInteractionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PostInteraction
+        fields = ["id", "post", "user", "like", "deslike"]
+        read_only_fields = ["id"]
