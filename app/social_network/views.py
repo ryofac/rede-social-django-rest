@@ -8,8 +8,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from social_network.models import Post, PostInteraction, User
-from social_network.serializers import CommentSerializer, PostSerializer, UserSerializer, PostInteractionSerializer
-
+from social_network.serializers import CommentSerializer, PostInteractionSerializer, PostSerializer, UserSerializer
 
 
 # Login and Register Views:
@@ -163,7 +162,9 @@ def toggle_dislike(request, post_id):
         PostInteraction.objects.create(user=user, post=post, interaction_type=PostInteraction.DISLIKE)
         return Response({"message": "Post descurtido com sucesso"})
 
+
 # USER:
+
 
 # TODO: Implementar list_all_friends_from_user passando o id do usuário desejado
 @api_view(["GET"])
@@ -172,7 +173,8 @@ def list_all_users(request):
     serializer = UserSerializer(users, many=True)
     return Response(serializer.data)
 
-#alterar os metodos, acho que nao estao funcionando :)
+
+# alterar os metodos, acho que nao estao funcionando :)
 @api_view(["GET"])
 def list_followed_by(request, username):
     try:
@@ -183,6 +185,7 @@ def list_followed_by(request, username):
     followed_by = user.followed_by.all()
     serializer = UserSerializer(followed_by, many=True)
     return Response(serializer.data)
+
 
 @api_view(["GET"])
 def list_followers(request, username):
@@ -195,6 +198,7 @@ def list_followers(request, username):
     serializer = UserSerializer(followers, many=True)
     return Response(serializer.data)
 
+
 @api_view(["GET"])
 def list_comments_post(request, pk):
     try:
@@ -205,6 +209,7 @@ def list_comments_post(request, pk):
     comments = post.comments.all()
     serializer = CommentSerializer(comments, many=True)
     return Response(serializer.data)
+
 
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication, TokenAuthentication])

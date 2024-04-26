@@ -8,9 +8,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Copiando os requirments
 COPY ./dev.requirements.txt /tmp/dev.requirements.txt
 COPY ./production.requirements.txt /tmp/production.requirements.txt
-COPY ./app /app
+COPY ./app /app/
 
 WORKDIR /app
+
 
 EXPOSE 8000
 

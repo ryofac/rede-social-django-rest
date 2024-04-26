@@ -15,27 +15,26 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import include, path, re_path
+from django.urls import include, path
 from rest_framework import routers
 from social_network import views
 
 router = routers.DefaultRouter()
-
+# TODO: primeiro implementar as rotas de authenticacao testadas para depois continuar implementando o resto
 urlpatterns = [
     path("", include(router.urls)),
-    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    re_path("login", views.login),
-    re_path("path(user/<username:str>)", views.logout),
-    re_path("signup", views.signup, name="signup"),
-    re_path("test_token", views.test_token),
-    path("posts/", views.create_list_post),
-    path("users/", views.list_all_users),
-    #gets by username and post
-    #se quiserem alterar o nome, a vontade
-    path("users/string:username/followed_by", views.list_followed_by),
-    path("users/string:username/followers", views.list_followers),
-    path("post/<int:pk>/comments",views.list_comments_post),
-    #levando junto o usuário autenticado
-    path("post/<int:pk>/like",views.like_post),
-    path("post/<int:pk>/deslike",views.deslike_post),
+    path("api/auth/login/", views.login),
+    path("user/<str:username>/logout/)", views.logout),
+    path("signup/", views.signup, name="signup"),
 ]
+#     path("test/token/", views.test_token),
+#     path("posts/", views.create_list_post),
+#     path("users/", views.list_all_users),
+#     # gets by username and post
+#     # se quiserem alterar o nome, a vontade
+#     path("users/<str:username>/followed_by/", views.list_followed_by),
+#     path("users/<str:username>/followers/", views.list_followers),
+#     path("post/<int:pk>/comments/", views.list_comments_post),
+#     # levando junto o usuário autenticado
+#     path("post/<int:pk>/like/", views.like_post),
+#     path("post/<int:pk>/deslike/", views.deslike_post),

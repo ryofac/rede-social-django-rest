@@ -1,18 +1,22 @@
-from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APIRequestFactory, APITestCase
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIRequestFactory, APITestCase
+
 from .models import User
 
 factory = APIRequestFactory
 
-class SocialNetworkTestCase(APITestCase):
+
+# Nao se enganem voces estao usando o unittest, mas o pytest tem suporte tbm
+class SocialNetworkTest(APITestCase):
     def test_signup(self):
         url = reverse("signup")
-        userfake = {"username":"tcheu amigo",
-                    "email": "teuamigo@gmail.com",
-                    "first_name":"tcheu",
-                    "last_name":"amigo"}
+        userfake = {
+            "username": "tcheu amigo",
+            "email": "teuamigo@gmail.com",
+            "first_name": "tcheu",
+            "last_name": "amigo",
+        }
         response = self.client.post(url, userfake, format="json")
         self.assertEqual(response.status_code, 201)
         self.assertEqual(User.objects.count(), 1)
@@ -28,5 +32,3 @@ class SocialNetworkTestCase(APITestCase):
 
     def test_test_token(self):
         pass
-
-    

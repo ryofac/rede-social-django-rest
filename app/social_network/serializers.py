@@ -2,7 +2,6 @@ from rest_framework import serializers
 from social_network import models
 
 
-# TODO: Pesquisar sobre ordenamento das classes
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(source="get_full_name", read_only=True)
 
@@ -45,6 +44,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = models.Post
         fields = ["id", "title", "content", "created_at", "updated_at", "comments", "user"]
         read_only_fields = ["id", "created_at"]
+
 
 class PostInteractionSerializer(serializers.ModelSerializer):
     class Meta:
