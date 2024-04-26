@@ -16,13 +16,18 @@ Including another URLconf
 """
 
 from django.urls import include, path
+from django.views.generic.base import RedirectView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 from social_network import views
 
 router = routers.DefaultRouter()
 # TODO: primeiro implementar as rotas de authenticacao testadas para depois continuar implementando o resto
 urlpatterns = [
-    path("", include(router.urls)),
+    path("", RedirectView.as_view(url="/api/docs/", permanent=False)),
+    path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
+    path("api/", include(router.urls)),
     path("api/auth/login/", views.login),
     path("user/<str:username>/logout/)", views.logout),
     path("signup/", views.signup, name="signup"),
