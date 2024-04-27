@@ -32,5 +32,6 @@ wcwidth==0.2.13
 django-extensions==3.2.3
 psycopg2==2.9.9
 drf-spectacular==0.27.2
+drf-api-logger==1.1.15
 
 

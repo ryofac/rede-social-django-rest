@@ -46,6 +46,7 @@ THIRDY_PARTY_APPS = [
     "django_extensions",
     "corsheaders",
     "drf_spectacular",
+    "drf_api_logger",
 ]
 
 INSTALLED_APPS = (
@@ -71,6 +72,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -162,3 +164,7 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
+
+DRF_API_LOGGER_DATABASE = True
+DRF_API_LOGGER_EXCLUDE_KEYS = ["password", "token", "access", "refresh"]
+DRF_API_LOGGER_METHODS = ["GET", "POST", "DELETE", "PUT", "PATCH"]
