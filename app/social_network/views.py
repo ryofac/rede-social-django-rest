@@ -26,7 +26,7 @@ class LoginView(APIView):
     def post(self, request):
         data = request.data
         # Validando a entrada:
-        serializer = UserLoginSerializer(data=data)
+        serializer = UserLoginSerializer(data=data, context={"request": request})
         if not serializer.is_valid():
             return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         try:
@@ -36,7 +36,7 @@ class LoginView(APIView):
             # atualizando manualmente o last_login
             user.last_login = timezone.now()
             user.save(update_fields=["last_login"])
-            return Response({"token": token.key, "user": serializer.data})
+            return Response({"token": token.key})
 
         except User.DoesNotExist:
             return Response({"detail": "The required user does not exist"}, status=status.HTTP_404_NOT_FOUND)
@@ -52,32 +52,20 @@ class SignupView(APIView):
         if serializer.is_valid():
             # Salvando o usuário a ser criado:
             serializer.save()
+            return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
 
-            # Buscando o usuário:
-            created_user = User.objects.get(username=data["username"])
-
-            # Hasheando a senha:
-            created_user.set_password(data["password"])
-            created_user.save()
-
-            # Criando um token de autenticação para esse usuário:
-            token = Token.objects.create(user=created_user)
-
-            return Response({"token": token.key, "user": serializer.data}, status=status.HTTP_201_CREATED)
         return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET"])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def logout(request):
-    if not request.user or not request.user.is_authenticated:
-        print(request.user.__dict__)
-        return Response({"detail": "not logged in"}, status=status.HTTP_400_BAD_REQUEST)
-    logged_user = request.user
-    logged_user.auth_token.delete()
-    django_logout(request)
-    return Response({"detail": "sucessfuly logged out"}, status=status.HTTP_200_OK)
+class SignoutView(APIView):
+    def post(self, request):
+        if not request.user or not request.user.is_authenticated:
+            print(request.user.__dict__)
+            return Response({"detail": "not logged in"}, status=status.HTTP_400_BAD_REQUEST)
+        logged_user = request.user
+        logged_user.auth_token.delete()
+        django_logout(request)
+        return Response({"detail": "sucessfuly logged out"}, status=status.HTTP_204_NO_CONTENT)
 
 
 """

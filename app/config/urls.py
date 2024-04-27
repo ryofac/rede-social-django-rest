@@ -28,9 +28,9 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
     path("api/", include(router.urls)),
-    path("api/auth/login/", views.LoginView.as_view()),
-    path("user/<str:username>/logout/)", views.logout),
+    path("api/auth/login/", views.LoginView.as_view(), name="login"),
     path("api/auth/signup/", views.SignupView.as_view(), name="signup"),
+    path("api/auth/signout/", views.SignoutView.as_view(), name="signout"),
 ]
 #     path("test/token/", views.test_token),
 #     path("posts/", views.create_list_post),
