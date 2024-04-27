@@ -6,9 +6,8 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/app
-    command: > 
-      sh -c "python manage.py makemigrations --no-input && python manage.py migrate && \
-      python manage.py await_for_db && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      sh -c "python manage.py makemigrations --no-input && python manage.py migrate && \ python manage.py await_for_db && python manage.py runserver 0.0.0.0:8000"
     build:
       args:
         - DEV=true
@@ -18,12 +17,14 @@ services:
       - postgres
 
   postgres:
+    ports:
+      - "5431:5432"
     image: postgres:16-alpine
     volumes:
       - dev-db:/var/lib/postgresql/data/
     env_file: ./dotenv-files/.env
 
-volumes: 
+volumes:
   dev-db:
-    
+
 

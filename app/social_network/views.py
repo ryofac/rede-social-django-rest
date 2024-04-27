@@ -5,65 +5,66 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from social_network.models import Post, PostInteraction, User
-from social_network.serializers import CommentSerializer, PostInteractionSerializer, PostSerializer, UserSerializer
+from social_network.serializers import (
+    CommentSerializer,
+    PostInteractionSerializer,
+    PostSerializer,
+    UserLoginSerializer,
+    UserSerializer,
+)
 
 
 # Login and Register Views:
-@api_view(["POST"])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-def login(request):
-    data = request.data
-    # Validando a entrada: Username e Password
-    # TODO: Pode ser que seja melhor ter um Serializer aqui
-    if not data.get("username") or not data.get("password"):
-        return Response(data={"detail": "invalid username or password"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = UserLoginSerializer
 
-    try:
-        # Obtendo um usuário com o método authenticate
-        user = authenticate(request, username=data["username"], password=data["password"])
+    def post(self, request):
+        data = request.data
+        # Validando a entrada:
+        serializer = UserLoginSerializer(data=data)
+        if not serializer.is_valid():
+            return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = serializer.validated_data["user"]
+            # Obtendo ou criando um token para esse usuário
+            token, created = Token.objects.get_or_create(user=user)  # retorna (token, bool)
+            # atualizando manualmente o last_login
+            user.last_login = timezone.now()
+            user.save(update_fields=["last_login"])
+            return Response({"token": token.key, "user": serializer.data})
 
-        # Checando se existe o usuário e a senha usando o check_password (já verifica o hash)
-        if not user or not user.check_password(request.data["password"]):
+        except User.DoesNotExist:
             return Response({"detail": "The required user does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Obtendo ou criando um token para esse usuário
-        token, created = Token.objects.get_or_create(user=user)  # retorna (token, bool)
-        serializer = UserSerializer(user)
 
-        # atualizando manualmente o last_login
-        user.last_login = timezone.now()
-        user.save(update_fields=["last_login"])
-        return Response({"token": token.key, "user": serializer.data})
+class SignupView(APIView):
+    serializer_class = UserSerializer
 
-    except User.DoesNotExist:
-        return Response({"detail": "The required user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+    def post(self, request):
+        data = request.data
+        serializer = UserSerializer(data=data)
 
+        if serializer.is_valid():
+            # Salvando o usuário a ser criado:
+            serializer.save()
 
-@api_view(["POST"])
-def signup(request):
-    data = request.data
+            # Buscando o usuário:
+            created_user = User.objects.get(username=data["username"])
 
-    serializer = UserSerializer(data=data)
+            # Hasheando a senha:
+            created_user.set_password(data["password"])
+            created_user.save()
 
-    if serializer.is_valid():
-        # Salvando o usuário a ser criado:
-        serializer.save()
+            # Criando um token de autenticação para esse usuário:
+            token = Token.objects.create(user=created_user)
 
-        # Buscando o usuário:
-        created_user = User.objects.get(username=data["username"])
-
-        # Hasheando a senha:
-        created_user.set_password(data["password"])
-        created_user.save()
-
-        # Criando um token de autenticação para esse usuário:
-        token = Token.objects.create(user=created_user)
-
-        return Response({"token": token.key, "user": serializer.data}, status=status.HTTP_201_CREATED)
-    return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"token": token.key, "user": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET"])
