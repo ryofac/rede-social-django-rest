@@ -1,5 +1,3 @@
-from django.contrib.auth import authenticate
-from django.contrib.auth import logout as django_logout
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
@@ -47,7 +45,7 @@ class SignupView(APIView):
 
     def post(self, request):
         data = request.data
-        serializer = UserSerializer(data=data)
+        serializer = UserSerializer(data=data, context={"request": request})
 
         if serializer.is_valid():
             # Salvando o usuário a ser criado:
@@ -60,12 +58,10 @@ class SignupView(APIView):
 class SignoutView(APIView):
     def post(self, request):
         if not request.user or not request.user.is_authenticated:
-            print(request.user.__dict__)
             return Response({"detail": "not logged in"}, status=status.HTTP_400_BAD_REQUEST)
         logged_user = request.user
         logged_user.auth_token.delete()
-        django_logout(request)
-        return Response({"detail": "sucessfuly logged out"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
 """
