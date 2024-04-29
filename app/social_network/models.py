@@ -2,7 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-# TODO: Analisar Abstract User e adaptar esse model
 class User(AbstractUser):
     username = models.CharField(max_length=20, verbose_name="Nome de usuário", unique=True)
     email = models.EmailField(verbose_name="Email do Usuário", unique=True)
