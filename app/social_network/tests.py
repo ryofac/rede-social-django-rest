@@ -160,3 +160,7 @@ class TestPrivateSocialNetworkViews:
         response = api_client.post(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Token.objects.filter(user=created_user).exists() is False
+
+    @pytest.mark.django_db
+    def test_log_in_already_logged_in_fail(self, api_client: APIClient, created_user: User):
+        pass

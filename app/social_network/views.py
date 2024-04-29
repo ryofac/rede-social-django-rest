@@ -47,18 +47,19 @@ class SignupView(APIView):
         data = request.data
         serializer = UserSerializer(data=data, context={"request": request})
 
-        if serializer.is_valid():
-            # Salvando o usuário a ser criado:
-            serializer.save()
-            return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
+        if not serializer.is_valid():
+            return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        # Salvando o usuário a ser criado:
+        serializer.save()
+        return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class SignoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
     def post(self, request):
-        if not request.user or not request.user.is_authenticated:
-            return Response({"detail": "not logged in"}, status=status.HTTP_400_BAD_REQUEST)
         logged_user = request.user
         logged_user.auth_token.delete()
         return Response({}, status=status.HTTP_204_NO_CONTENT)
