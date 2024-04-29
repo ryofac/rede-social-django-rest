@@ -128,7 +128,7 @@ class TestPublicSocialNetworkViews:
     def test_sign_out_not_logged_in_fail(self, api_client: APIClient):
         url = reverse("signout")
         response = api_client.post(url)
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 # Testes com o usuário logado
