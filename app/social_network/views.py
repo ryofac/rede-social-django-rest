@@ -65,40 +65,50 @@ class SignoutView(APIView):
         return Response({}, status=status.HTTP_204_NO_CONTENT)
 
 
-"""
-test_token: endpoint que serve somente para indicar se o token de autenticação de usuário está funcionando
-"""
+class CreatePost(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = PostSerializer
+
+    def post(self, request):
+        user = request.user
+        serializer = PostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user)
+            print(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["GET"])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def test_token(request):
-    serializer = UserSerializer(request.user)
-    token = Token.objects.get(user=request.user)
-    return Response({"detail": "Authenticated", "token": token.key, "user": serializer.data})
+class ListPostsFromUser(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = PostSerializer
+
+    def get(self, request, username: str):
+        posts = Post.objects.filter(user__username=username)
+        serializer = PostSerializer(posts, many=True)
+        # serializer.is_valid(raise_exception=True)
+        return Response(serializer.data)
 
 
-@api_view(["GET", "POST"])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def create_list_post(request, format=None):
-    user = request.user
-    match request.method:
-        case "GET":
-            posts = Post.objects.all()
-            serializer = PostSerializer(posts, many=True)
-            return Response(serializer.data)
-        case "POST":
-            serializer = PostSerializer(data=request.data)
-            if serializer.is_valid():
-                # user = request.user
-                serializer.save(user=user)
-                print(serializer.data)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(data={"errors": serializer.errors}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-        case _:
-            return Response(data=None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+class PostDetails(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(request):
+        pass
+
+    def post(request):
+        pass
+
+    def patch(request):
+        pass
+
+    def delete(request):
+        pass
 
 
 @api_view(["POST"])
@@ -225,3 +235,17 @@ def deslike_post(request, pk):
     post_interaction = PostInteraction.objects.create(user=user, post=post, interaction_type=PostInteraction.DISLIKE)
     serializer = PostInteractionSerializer(post_interaction)
     return Response(serializer.data, status=201)
+
+
+"""
+test_token: endpoint que serve somente para indicar se o token de autenticação de usuário está funcionando
+"""
+
+
+@api_view(["GET"])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def test_token(request):
+    serializer = UserSerializer(request.user)
+    token = Token.objects.get(user=request.user)
+    return Response({"detail": "Authenticated", "token": token.key, "user": serializer.data})
