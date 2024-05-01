@@ -12,7 +12,6 @@ COPY ./app /app/
 
 WORKDIR /app
 
-
 EXPOSE 8000
 
 ARG DEV=false
@@ -31,9 +30,3 @@ RUN apt-get update && \
 ENV PATH="/venv/bin:$PATH"
 
 USER django-user
-
-
-
-
-
-

@@ -97,3 +97,12 @@ extend-ignore = [
   "E501",
   "E701",
 ]
+
+# Taskipy
+[tool.taskipy.tasks]
+test = "docker compose run --rm django pytest"
+pos_test = "docker compose run --rm django coverage html"
+shell_plus = "docker compose run --rm django python manage.py shell_plus"
+up = "docker compose up"
+down = "docker compose down"
+post_down = "docker image prune"
