@@ -22,7 +22,6 @@ from rest_framework import routers
 from social_network import views
 
 router = routers.DefaultRouter()
-# TODO: primeiro implementar as rotas de authenticacao testadas para depois continuar implementando o resto
 urlpatterns = [
     path("", RedirectView.as_view(url="/api/docs/", permanent=False)),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
@@ -31,6 +30,8 @@ urlpatterns = [
     path("api/auth/login/", views.LoginView.as_view(), name="login"),
     path("api/auth/signup/", views.SignupView.as_view(), name="signup"),
     path("api/auth/signout/", views.SignoutView.as_view(), name="signout"),
+    path("api/posts", views.CreateListPost.as_view(), name="create_post"),
+    path("api/posts/<str:username>", views.ListPostsFromUser.as_view(), name="list_posts_from_user"),
 ]
 #     path("test/token/", views.test_token),
 #     path("posts/", views.create_list_post),

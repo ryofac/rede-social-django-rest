@@ -1,82 +1,51 @@
-from django.utils import timezone
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
-from rest_framework.authtoken.models import Token
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from social_network.models import Post, PostInteraction, User
-from social_network.serializers import (
-    CommentSerializer,
-    PostInteractionSerializer,
-    PostSerializer,
-    UserLoginSerializer,
-    UserSerializer,
-)
+from social_network.serializers import CommentSerializer, PostInteractionSerializer, PostSerializer, UserSerializer
 
 
-# Login and Register Views:
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-    serializer_class = UserLoginSerializer
-
-    def post(self, request):
-        data = request.data
-        # Validando a entrada:
-        serializer = UserLoginSerializer(data=data, context={"request": request})
-        if not serializer.is_valid():
-            return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            user = serializer.validated_data["user"]
-            # Obtendo ou criando um token para esse usuário
-            token, created = Token.objects.get_or_create(user=user)  # retorna (token, bool)
-            # atualizando manualmente o last_login
-            user.last_login = timezone.now()
-            user.save(update_fields=["last_login"])
-            return Response({"token": token.key})
-
-        except User.DoesNotExist:
-            return Response({"detail": "The required user does not exist"}, status=status.HTTP_404_NOT_FOUND)
-
-
-class SignupView(APIView):
-    serializer_class = UserSerializer
-
-    def post(self, request):
-        data = request.data
-        serializer = UserSerializer(data=data, context={"request": request})
-
-        if not serializer.is_valid():
-            return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Salvando o usuário a ser criado:
-        serializer.save()
-        return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
-
-
-class SignoutView(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
-
-    def post(self, request):
-        logged_user = request.user
-        logged_user.auth_token.delete()
-        return Response({}, status=status.HTTP_204_NO_CONTENT)
-
-
-class CreatePost(APIView):
+class CreateListPost(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     serializer_class = PostSerializer
+
+    # ?: Sobrescrita de métodos devido as diverenças de permissões entre a listagem e a criação
+    def get_authenticators(self):
+        if not self.request:
+            super().get_authenticators()
+        if self.request.method == "POST":
+            return [SessionAuthentication()]  # Autenticador para requisições POST
+        elif self.request.method == "GET":
+            return [BasicAuthentication()]  # Autenticador para requisições GET
+        return super().get_authenticators()
+
+    def get_permissions(self):
+        if not self.request:
+            return super().get_permissions()
+        if self.request and self.request.method == "POST":
+            return [IsAuthenticated()]  # Permissão para requisições POST
+        elif self.request and self.request.method == "GET":
+            return [AllowAny()]  # Permissão para requisições GET
+        return super().get_permissions()
+
+    def get(self, request):
+        self.authentication_classes = []
+        self.permission_classes = [AllowAny]
+        posts = Post.objects.all()
+        serializer = PostSerializer(posts, many=True)
+        # serializer.is_valid(raise_exception=True)
+        return Response(serializer.data)
 
     def post(self, request):
         user = request.user
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=user)
-            print(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(data={"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -159,9 +128,6 @@ def toggle_dislike(request, post_id):
         return Response({"message": "Post descurtido com sucesso"})
 
 
-# USER:
-
-
 # TODO: Implementar list_all_friends_from_user passando o id do usuário desejado
 @api_view(["GET"])
 def list_all_users(request):
@@ -220,32 +186,3 @@ def like_post(request, pk):
     post_interaction = PostInteraction.objects.create(user=user, post=post, interaction_type=PostInteraction.LIKE)
     serializer = PostInteractionSerializer(post_interaction)
     return Response(serializer.data, status=201)
-
-
-@api_view(["POST"])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def deslike_post(request, pk):
-    try:
-        post = Post.objects.get(pk=pk)
-    except Post.DoesNotExist:
-        return Response({"message": "Post not found"}, status=404)
-
-    user = request.user
-    post_interaction = PostInteraction.objects.create(user=user, post=post, interaction_type=PostInteraction.DISLIKE)
-    serializer = PostInteractionSerializer(post_interaction)
-    return Response(serializer.data, status=201)
-
-
-"""
-test_token: endpoint que serve somente para indicar se o token de autenticação de usuário está funcionando
-"""
-
-
-@api_view(["GET"])
-@authentication_classes([SessionAuthentication, TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def test_token(request):
-    serializer = UserSerializer(request.user)
-    token = Token.objects.get(user=request.user)
-    return Response({"detail": "Authenticated", "token": token.key, "user": serializer.data})
