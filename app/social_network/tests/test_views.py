@@ -8,10 +8,6 @@ from social_network.models import Comment, Post, User
 
 # Testes com o usuário não logado
 class TestPublicSocialNetworkViews:
-    @pytest.fixture
-    def api_client(self):
-        return APIClient()
-
     @pytest.mark.django_db
     def test_signup_is_success(self, api_client: APIClient):
         url = reverse("signup")
@@ -168,42 +164,22 @@ class TestPublicSocialNetworkViews:
 
 # Testes com o usuário logado
 class TestPrivateSocialNetworkViews:
-    @pytest.fixture
-    def api_client(self, created_user: User):
-        user = created_user
-        client = APIClient()
-        client.force_authenticate(user)
-        return client
-
-    @pytest.fixture
-    def created_user(self, **kwargs):
-        user_data = {
-            "username": "tcheu amigo",
-            "email": "teuamigo@gmail.com",
-            "password": "tcha_prima123$",
-            "first_name": "tcheu",
-            "last_name": "amigo",
-        }
-        user_data.update(kwargs)
-        user_created = User.objects.create_user(**user_data)
-        return user_created
-
     @pytest.mark.django_db
-    def test_signout_is_success(self, api_client: APIClient, created_user: User):
+    def test_signout_is_success(self, api_client_authenticated: APIClient, created_user: User):
         Token.objects.create(user=created_user)
         url = reverse("signout")
-        response = api_client.post(url)
+        response = api_client_authenticated.post(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Token.objects.filter(user=created_user).exists() is False
 
     @pytest.mark.django_db
-    def test_create_post_is_sucess(self, api_client: APIClient, created_user: User):
+    def test_create_post_is_sucess(self, api_client_authenticated: APIClient, created_user: User):
         url = reverse("create_list_post")
         payload = {
             "title": "teste testando testes",
             "content": "teste testa testes e fica testado",
         }
-        response = api_client.post(url, payload)
+        response = api_client_authenticated.post(url, payload)
         assert response.status_code == status.HTTP_201_CREATED
         assert Post.objects.count() == 1
         post = Post.objects.get(user=created_user)
@@ -212,7 +188,7 @@ class TestPrivateSocialNetworkViews:
             assert getattr(post, key) == value
 
     @pytest.mark.django_db
-    def test_see_posts_from_user_is_sucess(self, api_client: APIClient, created_user: User):
+    def test_see_posts_from_user_is_sucess(self, api_client_authenticated: APIClient, created_user: User):
         payload = {
             "title": "Meu postzinho lindinho",
             "content": "O que será de mim sem testes?",
@@ -222,7 +198,7 @@ class TestPrivateSocialNetworkViews:
         Comment.objects.create(user=created_user, post=post_created, content="halysson")
         url = reverse("list_posts_from_user", kwargs={"username": created_user.username})
 
-        response = api_client.get(url)
+        response = api_client_authenticated.get(url)
         posts = list(response.data)
 
         post_response = posts[0]
@@ -242,7 +218,7 @@ class TestPrivateSocialNetworkViews:
         assert created_user.username == payload["user"].username
 
     @pytest.mark.django_db
-    def test_create_post_invalid_dates_fail(self, api_client: APIClient, created_user: User):
+    def test_create_post_invalid_dates_fail(self, api_client_authenticated: APIClient, created_user: User):
         url = reverse("create_list_post")
         payload = {
             "title": "teste testando testes",
@@ -250,17 +226,73 @@ class TestPrivateSocialNetworkViews:
             "created_at": "1998-04-30T02:29:06.010088Z",
             "updated_at": "1998-04-30T02:29:06.010088Z",
         }
-        response = api_client.post(url, payload)
+        response = api_client_authenticated.post(url, payload)
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["created_at"] != payload["created_at"]
         assert response.data["created_at"] != payload["updated_at"]
 
     @pytest.mark.django_db
-    def test_create_post_with_no_required_content_fail(self, api_client: APIClient, created_user: User):
+    def test_create_post_with_no_required_content_fail(self, api_client_authenticated: APIClient, created_user: User):
         url = reverse("create_list_post")
         payload = {
             "title": "",
             "content": "",
         }
-        response = api_client.post(url, payload)
+        response = api_client_authenticated.post(url, payload)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    @pytest.mark.django_db
+    def test_update_post_is_sucess(self, api_client_authenticated: APIClient, created_post: Post):
+        url = reverse("post_details", kwargs={"pk": created_post.id})
+        payload = {"title": "Titulo atualizado", "content": "Conteudo atualizado"}
+        response = api_client_authenticated.patch(url, payload)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert Post.objects.count() == 1
+
+        # Assegurando que todos os itens do payload são iguais ao post alterado
+        altered_post = Post.objects.get(id=created_post.id)
+        for key, value in payload.items():
+            assert getattr(altered_post, key) == value
+
+    @pytest.mark.django_db
+    def test_delete_post_is_sucess(self, api_client_authenticated: APIClient, created_post: Post):
+        url = reverse("post_details", kwargs={"pk": created_post.id})
+        response = api_client_authenticated.delete(url)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert Post.objects.count() == 0
+
+    @pytest.mark.django_db
+    def test_delete_post_dosent_exists_fail(self, api_client_authenticated: APIClient, created_post: Post):
+        created_post_id = created_post.id
+        created_post.delete()
+        url = reverse("post_details", kwargs={"pk": created_post_id})
+        response = api_client_authenticated.delete(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.django_db
+    def test_update_post_dosent_exists_fail(self, api_client_authenticated: APIClient, created_post: Post):
+        created_post_id = created_post.id
+        created_post.delete()
+        url = reverse("post_details", kwargs={"pk": created_post_id})
+        payload = {"title": "Titulo atualizado", "content": "Conteudo atualizado"}
+        response = api_client_authenticated.patch(url, payload)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.django_db
+    def test_update_post_from_other_user_fail(self, api_client_authenticated: APIClient):
+        other_user = User.objects.create(username="other-user", password="123321")
+        post_from_other_user = Post.objects.create(title="a", content="b", user=other_user)
+        url = reverse("post_details", kwargs={"pk": post_from_other_user.id})
+        payload = {"title": "Titulo atualizado", "content": "Conteudo atualizado"}
+        response = api_client_authenticated.patch(url, payload)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.django_db
+    def test_delete_post_from_other_user_fail(self, api_client_authenticated: APIClient):
+        other_user = User.objects.create(username="other-user", password="123321")
+        post_from_other_user = Post.objects.create(title="a", content="b", user=other_user)
+        url = reverse("post_details", kwargs={"pk": post_from_other_user.id})
+        response = api_client_authenticated.delete(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND

@@ -35,18 +35,6 @@ urlpatterns = [
     path("api/posts/<int:pk>/", views.PostDetails.as_view(), name="post_details"),
     path("api/user/<str:username>/posts/", views.ListPostsFromUser.as_view(), name="list_posts_from_user"),
 ]
-#     path("test/token/", views.test_token),
-#     path("posts/", views.create_list_post),
-#     path("users/", views.list_all_users),
-#     # gets by username and post
-#     # se quiserem alterar o nome, a vontade
-#     path("users/<str:username>/followed_by/", views.list_followed_by),
-#     path("users/<str:username>/followers/", views.list_followers),
-#     path("post/<int:pk>/comments/", views.list_comments_post),
-#     # levando junto o usuário autenticado
-#     path("post/<int:pk>/like/", views.like_post),
-#     path("post/<int:pk>/deslike/", views.deslike_post),
-
 
 handler500 = "rest_framework.exceptions.server_error"
 handler400 = "rest_framework.exceptions.bad_request"

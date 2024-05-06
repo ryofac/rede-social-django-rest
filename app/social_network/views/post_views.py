@@ -7,7 +7,6 @@ from social_network.models import Post
 from social_network.serializers import PostSerializer, UpdatePostSerializer
 
 # TODO: Implementar o resto da lógica de posts:
-# ! Post Detais (Get, Patch, Delete)
 # ! Criação/Deleção de comentários
 
 
