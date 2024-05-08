@@ -84,18 +84,24 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Comment
-        fields = ["id", "content", "user"]
+        fields = ["id", "content", "user", "created_at", "post"]
         read_only_fields = ["id", "created_at"]
 
 
 class PostSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = CommentSerializer(source="comment_set", many=True, read_only=True)
     user = UserSerializer(many=False, read_only=True)
 
     class Meta:
         model = models.Post
         fields = ["id", "title", "content", "created_at", "updated_at", "comments", "user"]
         read_only_fields = ["id", "created_at"]
+
+
+class UpdatePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Post
+        fields = ["title", "content"]
 
 
 class PostInteractionSerializer(serializers.ModelSerializer):

@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.http import JsonResponse
 from django.urls import include, path
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
@@ -30,17 +31,11 @@ urlpatterns = [
     path("api/auth/login/", views.LoginView.as_view(), name="login"),
     path("api/auth/signup/", views.SignupView.as_view(), name="signup"),
     path("api/auth/signout/", views.SignoutView.as_view(), name="signout"),
-    path("api/posts", views.CreateListPost.as_view(), name="create_post"),
-    path("api/posts/<str:username>", views.ListPostsFromUser.as_view(), name="list_posts_from_user"),
+    path("api/posts/", views.CreateListPost.as_view(), name="create_list_post"),
+    path("api/posts/<int:pk>/", views.PostDetails.as_view(), name="post_details"),
+    path("api/user/<str:username>/posts/", views.ListPostsFromUser.as_view(), name="list_posts_from_user"),
 ]
-#     path("test/token/", views.test_token),
-#     path("posts/", views.create_list_post),
-#     path("users/", views.list_all_users),
-#     # gets by username and post
-#     # se quiserem alterar o nome, a vontade
-#     path("users/<str:username>/followed_by/", views.list_followed_by),
-#     path("users/<str:username>/followers/", views.list_followers),
-#     path("post/<int:pk>/comments/", views.list_comments_post),
-#     # levando junto o usuário autenticado
-#     path("post/<int:pk>/like/", views.like_post),
-#     path("post/<int:pk>/deslike/", views.deslike_post),
+
+handler500 = "rest_framework.exceptions.server_error"
+handler400 = "rest_framework.exceptions.bad_request"
+handler404 = "core.views.custom_404"
