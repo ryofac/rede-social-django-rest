@@ -15,25 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.http import JsonResponse
 from django.urls import include, path
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
-from social_network import views
 
 router = routers.DefaultRouter()
+
+
 urlpatterns = [
     path("", RedirectView.as_view(url="/api/docs/", permanent=False)),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-docs"),
+    path("api/", include("social_network.urls", namespace="social_network")),
     path("api/", include(router.urls)),
-    path("api/auth/login/", views.LoginView.as_view(), name="login"),
-    path("api/auth/signup/", views.SignupView.as_view(), name="signup"),
-    path("api/auth/signout/", views.SignoutView.as_view(), name="signout"),
-    path("api/posts/", views.CreateListPost.as_view(), name="create_list_post"),
-    path("api/posts/<int:pk>/", views.PostDetails.as_view(), name="post_details"),
-    path("api/user/<str:username>/posts/", views.ListPostsFromUser.as_view(), name="list_posts_from_user"),
 ]
 
 handler500 = "rest_framework.exceptions.server_error"

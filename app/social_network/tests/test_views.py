@@ -10,7 +10,7 @@ from social_network.models import Comment, Post, User
 class TestPublicSocialNetworkViews:
     @pytest.mark.django_db
     def test_signup_is_success(self, api_client: APIClient):
-        url = reverse("signup")
+        url = reverse("social_network:signup")
         payload = {
             "username": "tcheu amigo",
             "email": "teuamigo@gmail.com",
@@ -29,7 +29,7 @@ class TestPublicSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_login_is_success(self, api_client: APIClient):
-        url = reverse("login")
+        url = reverse("social_network:login")
 
         kwargs = {
             "username": "tcheu amigo",
@@ -55,7 +55,7 @@ class TestPublicSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_signup_passwords_does_not_match_fail(self, api_client: APIClient):
-        url = reverse("signup")
+        url = reverse("social_network:signup")
         payload = {
             "username": "tcheu amigo",
             "email": "teuamigo@gmail.com",
@@ -70,7 +70,7 @@ class TestPublicSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_signup_without_required_field_fail(self, api_client: APIClient):
-        url = reverse("signup")
+        url = reverse("social_network:signup")
         payload = {
             "username": "tcheu amigo",
             "password": "tcha_prima123$",
@@ -84,7 +84,7 @@ class TestPublicSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_login_with_wrong_credentials_fail(self, api_client: APIClient):
-        url = reverse("login")
+        url = reverse("social_network:login")
         kwargs = {
             "username": "tcheu amigo",
             "email": "teuamigo@gmail.com",
@@ -103,7 +103,7 @@ class TestPublicSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_login_with_username_instead_of_email_fail(self, api_client: APIClient):
-        url = reverse("login")
+        url = reverse("social_network:login")
         kwargs = {
             "username": "tcheu amigo",
             "email": "teuamigo@gmail.com",
@@ -121,14 +121,14 @@ class TestPublicSocialNetworkViews:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_sign_out_not_logged_in_fail(self, api_client: APIClient):
-        url = reverse("signout")
+        url = reverse("social_network:signout")
         response = api_client.post(url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.django_db
     def test_see_posts_from_user_unauthorized_fail(self, api_client: APIClient):
         created_user = User.objects.create(username="usuário", password="senha")
-        url = reverse("list_posts_from_user", kwargs={"username": created_user.username})
+        url = reverse("social_network:list_posts_from_user", kwargs={"username": created_user.username})
         response = api_client.get(url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -136,7 +136,7 @@ class TestPublicSocialNetworkViews:
     def test_get_post_by_id_is_sucess(self, api_client: APIClient):
         user = User.objects.create(username="Robertin", password="senha")
         post = Post.objects.create(title="Robervaldo CD's", content="O melhor do arrocha", user=user)
-        url = reverse("post_details", kwargs={"pk": post.id})
+        url = reverse("social_network:post_details", kwargs={"pk": post.id})
 
         response = api_client.get(url)
         data = response.data
@@ -146,7 +146,7 @@ class TestPublicSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_create_post_with_no_credenentials_fail(self, api_client: APIClient):
-        url = reverse("create_list_post")
+        url = reverse("social_network:create_list_post")
         payload = {
             "title": "teste testando testes",
             "content": "teste testa testes e fica testado",
@@ -157,7 +157,7 @@ class TestPublicSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_get_all_posts_is_sucess(self, api_client: APIClient):
-        url = reverse("create_list_post")
+        url = reverse("social_network:create_list_post")
         response = api_client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
@@ -167,14 +167,14 @@ class TestPrivateSocialNetworkViews:
     @pytest.mark.django_db
     def test_signout_is_success(self, api_client_authenticated: APIClient, created_user: User):
         Token.objects.create(user=created_user)
-        url = reverse("signout")
+        url = reverse("social_network:signout")
         response = api_client_authenticated.post(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert Token.objects.filter(user=created_user).exists() is False
 
     @pytest.mark.django_db
     def test_create_post_is_sucess(self, api_client_authenticated: APIClient, created_user: User):
-        url = reverse("create_list_post")
+        url = reverse("social_network:create_list_post")
         payload = {
             "title": "teste testando testes",
             "content": "teste testa testes e fica testado",
@@ -196,7 +196,7 @@ class TestPrivateSocialNetworkViews:
         }
         post_created = Post.objects.create(**payload)
         Comment.objects.create(user=created_user, post=post_created, content="halysson")
-        url = reverse("list_posts_from_user", kwargs={"username": created_user.username})
+        url = reverse("social_network:list_posts_from_user", kwargs={"username": created_user.username})
 
         response = api_client_authenticated.get(url)
         posts = list(response.data)
@@ -219,7 +219,7 @@ class TestPrivateSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_create_post_invalid_dates_fail(self, api_client_authenticated: APIClient, created_user: User):
-        url = reverse("create_list_post")
+        url = reverse("social_network:create_list_post")
         payload = {
             "title": "teste testando testes",
             "content": "teste testa testes e fica testado",
@@ -233,7 +233,7 @@ class TestPrivateSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_create_post_with_no_required_content_fail(self, api_client_authenticated: APIClient, created_user: User):
-        url = reverse("create_list_post")
+        url = reverse("social_network:create_list_post")
         payload = {
             "title": "",
             "content": "",
@@ -243,7 +243,7 @@ class TestPrivateSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_update_post_is_sucess(self, api_client_authenticated: APIClient, created_post: Post):
-        url = reverse("post_details", kwargs={"pk": created_post.id})
+        url = reverse("social_network:post_details", kwargs={"pk": created_post.id})
         payload = {"title": "Titulo atualizado", "content": "Conteudo atualizado"}
         response = api_client_authenticated.patch(url, payload)
 
@@ -257,7 +257,7 @@ class TestPrivateSocialNetworkViews:
 
     @pytest.mark.django_db
     def test_delete_post_is_sucess(self, api_client_authenticated: APIClient, created_post: Post):
-        url = reverse("post_details", kwargs={"pk": created_post.id})
+        url = reverse("social_network:post_details", kwargs={"pk": created_post.id})
         response = api_client_authenticated.delete(url)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -267,7 +267,7 @@ class TestPrivateSocialNetworkViews:
     def test_delete_post_dosent_exists_fail(self, api_client_authenticated: APIClient, created_post: Post):
         created_post_id = created_post.id
         created_post.delete()
-        url = reverse("post_details", kwargs={"pk": created_post_id})
+        url = reverse("social_network:post_details", kwargs={"pk": created_post_id})
         response = api_client_authenticated.delete(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -275,7 +275,7 @@ class TestPrivateSocialNetworkViews:
     def test_update_post_dosent_exists_fail(self, api_client_authenticated: APIClient, created_post: Post):
         created_post_id = created_post.id
         created_post.delete()
-        url = reverse("post_details", kwargs={"pk": created_post_id})
+        url = reverse("social_network:post_details", kwargs={"pk": created_post_id})
         payload = {"title": "Titulo atualizado", "content": "Conteudo atualizado"}
         response = api_client_authenticated.patch(url, payload)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -284,7 +284,7 @@ class TestPrivateSocialNetworkViews:
     def test_update_post_from_other_user_fail(self, api_client_authenticated: APIClient):
         other_user = User.objects.create(username="other-user", password="123321")
         post_from_other_user = Post.objects.create(title="a", content="b", user=other_user)
-        url = reverse("post_details", kwargs={"pk": post_from_other_user.id})
+        url = reverse("social_network:post_details", kwargs={"pk": post_from_other_user.id})
         payload = {"title": "Titulo atualizado", "content": "Conteudo atualizado"}
         response = api_client_authenticated.patch(url, payload)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -293,6 +293,6 @@ class TestPrivateSocialNetworkViews:
     def test_delete_post_from_other_user_fail(self, api_client_authenticated: APIClient):
         other_user = User.objects.create(username="other-user", password="123321")
         post_from_other_user = Post.objects.create(title="a", content="b", user=other_user)
-        url = reverse("post_details", kwargs={"pk": post_from_other_user.id})
+        url = reverse("social_network:post_details", kwargs={"pk": post_from_other_user.id})
         response = api_client_authenticated.delete(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
