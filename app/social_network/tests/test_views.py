@@ -161,6 +161,23 @@ class TestPublicSocialNetworkViews:
         response = api_client.get(url)
         assert response.status_code == status.HTTP_200_OK
 
+    def test_acessing_me_not_authenticated_failing(self, api_client: APIClient):
+        url = reverse("social_network:user-me")
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    @pytest.mark.django_db
+    def test_get_all_users_is_sucess(self, api_client: APIClient):
+        url = reverse("social_network:user-list")
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == User.objects.count()
+
+    def test_update_user_unauthenticated_fail(self, api_client):
+        url = reverse("social_network:user-update")
+        response = api_client.patch(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 # Testes com o usuário logado
 class TestPrivateSocialNetworkViews:
@@ -296,3 +313,24 @@ class TestPrivateSocialNetworkViews:
         url = reverse("social_network:post_details", kwargs={"pk": post_from_other_user.id})
         response = api_client_authenticated.delete(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.django_db
+    def test_if_me_is_working(self, api_client_authenticated: APIClient, created_user):
+        url = reverse("social_network:user-me")
+        response = api_client_authenticated.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+
+        user_data = response.data
+        for key in ["username", "email", "last_login"]:
+            assert key in user_data.keys()
+
+        assert user_data["username"] == created_user.username
+        assert user_data["email"] == created_user.email
+
+    @pytest.mark.django_db
+    def test_me_acessing_from_unlogged_user(self, api_client_authenticated: APIClient, created_user):
+        api_client_authenticated.logout()
+        url = reverse("social_network:user-me")
+        response = api_client_authenticated.get(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
